@@ -1,5 +1,7 @@
 package com.back.domain.post.post.controller;
 
+import com.back.domain.member.member.entity.Member;
+import com.back.domain.member.member.service.MemberService;
 import com.back.domain.post.post.entity.Post;
 import com.back.domain.post.post.service.PostService;
 import org.hamcrest.Matchers;
@@ -30,13 +32,15 @@ public class ApiV1PostControllerTest {
     @Autowired
     private PostService postService;
 
-
     @Test
-    @DisplayName("글 작성")
+    @DisplayName("글 쓰기")
     void t1() throws Exception {
+        Member actor = memberService.findByUsername("user1").get();
+        String actorApiKey = actor.getApiKey();
+
         ResultActions resultActions = mvc
                 .perform(
-                        post("/api/v1/posts?username=user1")
+                        post("/api/v1/posts?apiKey=" + actorApiKey)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("""
                                         {
@@ -59,17 +63,17 @@ public class ApiV1PostControllerTest {
                 .andExpect(jsonPath("$.data.createDate").value(Matchers.startsWith(post.getCreateDate().toString().substring(0, 20))))
                 .andExpect(jsonPath("$.data.modifyDate").value(Matchers.startsWith(post.getModifyDate().toString().substring(0, 20))))
                 .andExpect(jsonPath("$.data.authorId").value(post.getAuthor().getId()))
-                .andExpect(jsonPath("$.data.authorName").value(post.getAuthor().getName()))
+                .andExpect(jsonPath("$.data.authorName").value(post.getAuthor().getNickname()))
                 .andExpect(jsonPath("$.data.title").value("제목"))
                 .andExpect(jsonPath("$.data.content").value("내용"));
     }
 
     @Test
-    @DisplayName("글 작성, without title")
+    @DisplayName("글 쓰기, without title")
     void t7() throws Exception {
         ResultActions resultActions = mvc
                 .perform(
-                        post("/api/v1/posts?username=user1")
+                        post("/api/v1/posts")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("""
                                         {
@@ -92,11 +96,11 @@ public class ApiV1PostControllerTest {
     }
 
     @Test
-    @DisplayName("글 작성, without content")
+    @DisplayName("글 쓰기, without content")
     void t8() throws Exception {
         ResultActions resultActions = mvc
                 .perform(
-                        post("/api/v1/posts?username=user1")
+                        post("/api/v1/posts")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("""
                                         {
@@ -119,7 +123,7 @@ public class ApiV1PostControllerTest {
     }
 
     @Test
-    @DisplayName("글 작성, with wrong json syntax")
+    @DisplayName("글 쓰기, with wrong json syntax")
     void t9() throws Exception {
 
         String wrongJsonBody = """
@@ -130,7 +134,7 @@ public class ApiV1PostControllerTest {
 
         ResultActions resultActions = mvc
                 .perform(
-                        post("/api/v1/posts?username=user1")
+                        post("/api/v1/posts")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(wrongJsonBody)
                 )
@@ -212,7 +216,7 @@ public class ApiV1PostControllerTest {
                 .andExpect(jsonPath("$.createDate").value(Matchers.startsWith(post.getCreateDate().toString().substring(0, 20))))
                 .andExpect(jsonPath("$.modifyDate").value(Matchers.startsWith(post.getModifyDate().toString().substring(0, 20))))
                 .andExpect(jsonPath("$.authorId").value(post.getAuthor().getId()))
-                .andExpect(jsonPath("$.authorName").value(post.getAuthor().getName()))
+                .andExpect(jsonPath("$.authorName").value(post.getAuthor().getNickname()))
                 .andExpect(jsonPath("$.title").value(post.getTitle()))
                 .andExpect(jsonPath("$.content").value(post.getContent()));
     }
@@ -261,9 +265,12 @@ public class ApiV1PostControllerTest {
                     .andExpect(jsonPath("$[%d].createDate".formatted(i)).value(Matchers.startsWith(post.getCreateDate().toString().substring(0, 20))))
                     .andExpect(jsonPath("$[%d].modifyDate".formatted(i)).value(Matchers.startsWith(post.getModifyDate().toString().substring(0, 20))))
                     .andExpect(jsonPath("$[%d].authorId".formatted(i)).value(post.getAuthor().getId()))
-                    .andExpect(jsonPath("$[%d].authorName".formatted(i)).value(post.getAuthor().getName()))
+                    .andExpect(jsonPath("$[%d].authorName".formatted(i)).value(post.getAuthor().getNickname()))
                     .andExpect(jsonPath("$[%d].title".formatted(i)).value(post.getTitle()))
                     .andExpect(jsonPath("$[%d].content".formatted(i)).value(post.getContent()));
         }
     }
+
+    @Autowired
+    private MemberService memberService;
 }
