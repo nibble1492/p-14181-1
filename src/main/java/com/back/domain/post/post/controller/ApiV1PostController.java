@@ -86,7 +86,6 @@ public class ApiV1PostController {
             String content
     ) {
     }
-
     @PutMapping("/{id}")
     @Transactional
     @Operation(summary = "수정")
