@@ -49,20 +49,6 @@ public class ApiV1PostController {
         return new PostDto(post);
     }
 
-    @DeleteMapping("/{id}")
-    @Transactional
-    @Operation(summary = "삭제")
-    public RsData<Void> delete(@PathVariable int id) {
-        Post post = postService.findById(id).get();
-
-        postService.delete(post);
-
-        return new RsData<>(
-                "200-1",
-                "%d번 글이 삭제되었습니다.".formatted(id)
-        );
-    }
-
     record PostWriteReqBody(
             @NotBlank
             @Size(min = 2, max = 100)
@@ -124,6 +110,31 @@ public class ApiV1PostController {
         return new RsData<>(
                 "200-1",
                 "%d번 글이 수정되었습니다.".formatted(post.getId())
+        );
+    }
+
+    @DeleteMapping("/{id}")
+    @Transactional
+    @Operation(summary = "삭제")
+    public RsData<Void> delete(
+            @PathVariable int id,
+            @NotBlank @Size(min = 30, max = 50) @RequestHeader("Authorization") String authorization
+    ) {
+        String apiKey = authorization.replace("Bearer ", "");
+
+        Member actor = memberService.findByApiKey(apiKey).orElseThrow(() -> new ServiceException("401-1", "존재하지 않는 apiKey 입니다."));
+
+        Post post = postService.findById(id).get();
+
+        if (!actor.equals(post.getAuthor())) {
+            throw new ServiceException("403-1", "글 삭제 권한이 없습니다.");
+        }
+
+        postService.delete(post);
+
+        return new RsData<>(
+                "200-1",
+                "%d번 글이 삭제되었습니다.".formatted(id)
         );
     }
 }
