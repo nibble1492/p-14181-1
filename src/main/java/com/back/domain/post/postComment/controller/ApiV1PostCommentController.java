@@ -101,8 +101,7 @@ public class ApiV1PostCommentController {
 
         PostComment postComment = post.findCommentById(id).get();
 
-        if (!actor.equals(postComment.getAuthor()))
-            throw new ServiceException("403-1", "댓글 수정 권한이 없습니다.");
+        postComment.checkActorCanModify(actor);
 
         postService.modifyComment(postComment, reqBody.content);
 
