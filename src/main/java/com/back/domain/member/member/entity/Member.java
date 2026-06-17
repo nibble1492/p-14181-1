@@ -31,4 +31,8 @@ public class Member extends BaseEntity {
         return nickname;
     }
 
+    public void modifyApiKey(String apiKey) {
+        this.apiKey = apiKey;
+    }
+
 }
