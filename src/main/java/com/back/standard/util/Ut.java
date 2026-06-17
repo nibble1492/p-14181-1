@@ -8,6 +8,7 @@ import io.jsonwebtoken.security.Keys;
 import javax.crypto.SecretKey;
 import java.security.Key;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class Ut {
@@ -49,6 +50,22 @@ public class Ut {
             }
 
             return true;
+        }
+
+        public static Map<String, Object> payload(String secret, String jwtStr) {
+            SecretKey secretKey = Keys.hmacShaKeyFor(secret.getBytes());
+
+            try {
+                return new LinkedHashMap<>(
+                        Jwts.parser()
+                                .verifyWith(secretKey)
+                                .build()
+                                .parseSignedClaims(jwtStr)
+                                .getPayload()
+                );
+            } catch (Exception e) {
+                return null;
+            }
         }
     }
 }
