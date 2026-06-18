@@ -1,6 +1,7 @@
 package com.back.domain.post.post.controller;
 
 import com.back.domain.member.member.entity.Member;
+import com.back.domain.member.member.service.MemberService;
 import com.back.domain.post.post.dto.PostDto;
 import com.back.domain.post.post.entity.Post;
 import com.back.domain.post.post.service.PostService;
@@ -25,6 +26,7 @@ import java.util.List;
 @SecurityRequirement(name = "bearerAuth")
 public class ApiV1PostController {
     private final PostService postService;
+    private final MemberService memberService;
     private final Rq rq;
 
     @GetMapping
@@ -113,7 +115,7 @@ public class ApiV1PostController {
             @PathVariable int id,
             @Valid @RequestBody PostModifyReqBody reqBody
     ) {
-        Member actor = rq.getActor();
+        Member actor = memberService.findById(rq.getActor().getId()).get();
 
         Post post = postService.findById(id).get();
 
