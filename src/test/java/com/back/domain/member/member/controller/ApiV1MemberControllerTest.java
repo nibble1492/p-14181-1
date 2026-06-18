@@ -16,6 +16,8 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.blankOrNullString;
+import static org.hamcrest.Matchers.not;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -182,6 +184,12 @@ public class ApiV1MemberControllerTest {
                     assertThat(apiKeyCookie.getMaxAge()).isEqualTo(0);
                     assertThat(apiKeyCookie.getPath()).isEqualTo("/");
                     assertThat(apiKeyCookie.isHttpOnly()).isTrue();
+
+                    Cookie accessTokenCookie = result.getResponse().getCookie("accessToken");
+                    assertThat(accessTokenCookie.getValue()).isEmpty();
+                    assertThat(accessTokenCookie.getMaxAge()).isEqualTo(0);
+                    assertThat(accessTokenCookie.getPath()).isEqualTo("/");
+                    assertThat(accessTokenCookie.isHttpOnly()).isTrue();
                 });
     }
 
@@ -201,20 +209,17 @@ public class ApiV1MemberControllerTest {
         resultActions
                 .andExpect(handler().handlerType(ApiV1MemberController.class))
                 .andExpect(handler().methodName("me"))
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(header().string("Authorization", not(blankOrNullString())))
+                .andExpect(
+                        result -> {
+                            Cookie accessTokenCookie = result.getResponse().getCookie("accessToken");
 
-        resultActions.andExpect(
-                result -> {
-                    Cookie accessTokenCookie = result.getResponse().getCookie("accessToken");
-                    assertThat(accessTokenCookie.getValue()).isNotBlank();
-                    assertThat(accessTokenCookie.getPath()).isEqualTo("/");
-                    assertThat(accessTokenCookie.isHttpOnly()).isTrue();
-
-                    String headerAuthorization = result.getResponse().getHeader("Authorization");
-                    assertThat(headerAuthorization).isNotBlank();
-
-                    assertThat(headerAuthorization).isEqualTo(accessTokenCookie.getValue());
-                }
-        );
+                            assertThat(accessTokenCookie).isNotNull();
+                            assertThat(accessTokenCookie.getValue()).isNotBlank();
+                            assertThat(accessTokenCookie.getPath()).isEqualTo("/");
+                            assertThat(accessTokenCookie.isHttpOnly()).isTrue();
+                        }
+                );
     }
 }
